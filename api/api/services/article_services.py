@@ -63,11 +63,11 @@ class ArticleService:
             short_description=result[0][4],
             authors=result[0][5],
             date=result[0][6],
-            embedding=[float(num.strip("{}")) for num in result[0][7].split(",")],
+            embedding=result[0][7],
         )
 
         result = self.qdrant_dao.search(
-            collection_name="articles", vector=article.embedding, top=3
+            collection_name="articles", vector=article.embedding, top=3, category=article.category
         )
 
         related_articles: list[Article] = []

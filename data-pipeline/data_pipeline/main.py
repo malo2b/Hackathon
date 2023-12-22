@@ -55,23 +55,26 @@ class Pipeline:
         Args:
             article (dict): Article to insert
         """
-        self.qdrant_client.upsert(
-            collection_name=self.collection_name,
-            points=[
-                {
-                    "id": index,
-                    "payload": {
-                        "title": article["headline"],
-                        "category": article["category"],
-                        "short_description": article["short_description"],
-                        "link": article["link"],
-                        "date": article["date"],
-                        "authors": article["authors"],
-                    },
-                    "vector": embedding,
-                }
-            ],
-        )
+        try:
+            self.qdrant_client.upsert(
+                collection_name=self.collection_name,
+                points=[
+                    {
+                        "id": index,
+                        "payload": {
+                            "title": article["headline"],
+                            "category": article["category"],
+                            "short_description": article["short_description"],
+                            "link": article["link"],
+                            "date": article["date"],
+                            "authors": article["authors"],
+                        },
+                        "vector": embedding,
+                    }
+                ],
+            )
+        except Exception as e:
+            print(e)
 
     def _get_embedding(self, input: str) -> list:
         """Get an embedding from a text
@@ -92,7 +95,9 @@ class Pipeline:
         except Exception as e:
             print(e)
 
-    def _insert_article_in_db(self, article: dict, embeddings: list) -> None:
+    def _insert_article_in_db(
+        self, index: int, article: dict, embeddings: list
+    ) -> None:
         """Insert an article in the database
 
         Args:
@@ -100,10 +105,11 @@ class Pipeline:
             vectors (list): Embedding of the article
         """
         query: str = """ INSERT INTO articles
-            (vector, link, headline, category, short_description, authors, date)
-            VALUES (%s,%s,%s,%s,%s,%s,%s)
+            (id, vector, link, headline, category, short_description, authors, date)
+            VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
         """
         values = (
+            index,
             embeddings,
             article["link"],
             article["headline"],
@@ -134,13 +140,32 @@ class Pipeline:
             vectors_config=VectorParams(size=1536, distance=Distance.COSINE),
         )
 
+        # Drop the table if exists
+        self.postgre_client.cursor().execute(
+            f"DROP TABLE IF EXISTS {self.collection_name}"
+        )
+
+        # Create the table
+        query: str = f""" CREATE TABLE {self.collection_name} (
+            id SERIAL PRIMARY KEY,
+            vector FLOAT[],
+            link TEXT,
+            headline TEXT,
+            category TEXT,
+            short_description TEXT,
+            authors TEXT,
+            date DATE
+        )
+        """
+        self.postgre_client.cursor().execute(query)
+
         # Insert the articles
         for index, article in articles.iterrows():
             embedding: list = self._get_embedding(article["short_description"])
             article: dict = article.to_dict()
             self._insert_article_in_qdrant(index, article, embedding)
-            self._insert_article_in_db(article, embedding)
+            self._insert_article_in_db(index, article, embedding)
 
 
-# pipeline = Pipeline("data-pipeline/News_Category_Dataset_v3.json")
-# pipeline.run()
+pipeline = Pipeline("data_pipeline/News_Category_Dataset_v3.json")
+pipeline.run()

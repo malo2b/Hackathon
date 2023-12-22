@@ -156,3 +156,5 @@ cython_debug/
 
 # .devcontainer
 /.devcontainer/.env
+
+.DS_Store

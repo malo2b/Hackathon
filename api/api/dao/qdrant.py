@@ -1,7 +1,6 @@
-
-
 from api.settings import settings
 from qdrant_client import QdrantClient
+from qdrant_client.http import models
 
 
 class QdrantAccessObject:
@@ -13,7 +12,9 @@ class QdrantAccessObject:
             api_key=settings.QDRANT_API_KEY,
         )
 
-    def search(self, collection_name: str, vector: list[float], top: int) -> dict:
+    def search(
+        self, collection_name: str, vector: list[float], top: int, category: str
+    ) -> dict:
         """Search for the nearest neighbors of a vector in a collection
 
         Args:
@@ -28,4 +29,16 @@ class QdrantAccessObject:
             collection_name=collection_name,
             query_vector=vector,
             limit=top,
+            offset=1,
+            score_threshold=0.8,
+            query_filter=models.Filter(
+                must=[
+                    models.FieldCondition(
+                        key="category",
+                        match=models.MatchValue(
+                            value=category,
+                        ),
+                    ),
+                ]
+            ),
         )
