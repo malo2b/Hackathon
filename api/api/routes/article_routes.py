@@ -4,7 +4,7 @@ from api.schemas.article_schemas import Article, ArticleParams
 from api.services.article_services import ArticleService
 
 
-router = APIRouter(prefix="/articles", tags=["cart"])
+router = APIRouter(prefix="/articles", tags=["articles"])
 
 
 @router.get("")

@@ -161,7 +161,9 @@ class Pipeline:
 
         # Insert the articles
         for index, article in articles.iterrows():
-            embedding: list = self._get_embedding(article["short_description"])
+            embedding: list = self._get_embedding(
+                f"""{article["date"]} - {article["short_description"]}"""
+            )
             article: dict = article.to_dict()
             self._insert_article_in_qdrant(index, article, embedding)
             self._insert_article_in_db(index, article, embedding)
