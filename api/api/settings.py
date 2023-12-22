@@ -9,6 +9,12 @@ class Settings(BaseSettings):
     QDRANT_URL: str
     QDRANT_API_KEY: str
 
+    DATABASE_URL: str
+    DATABASE_USER: str
+    DATABASE_PASSWORD: str
+    DATABASE_NAME: str
+    DATABASE_PORT: int
+
     model_config = SettingsConfigDict(env_file=".env")
 
 

@@ -13,6 +13,30 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+    networks:
+      - hackathon
+
+  api:
+    build: ./api
+    environment:
+      QDRANT_URL: "https://9c7ce2ab-e4bb-4fb7-984f-751839b17d72.us-east4-0.gcp.cloud.qdrant.io:6333/"
+      QDRANT_API_KEY: "hP7iNUrHyru2UJRKdCM1ldWmYTl5720sPf83khCiAJcLI2M3BnGh1w"
+
+      DATABASE_URL: "db"
+      DATABASE_USER: "myuser"
+      DATABASE_PASSWORD: "mypassword"
+      DATABASE_NAME: "mydatabase"
+      DATABASE_PORT: "5432"
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    networks:
+      - hackathon
 
 volumes:
   pgdata:
+
+networks:
+  hackathon:
+    driver: bridge

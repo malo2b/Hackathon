@@ -1,6 +1,11 @@
 from api.dao.postgre import PostgreAccessObject
 from api.dao.qdrant import QdrantAccessObject
-from api.schemas.article_schemas import Article, Articles, ArticleAndRelated
+from api.schemas.article_schemas import (
+    Article,
+    Articles,
+    ArticleAndRelated,
+    ArticleParams,
+)
 
 
 class ArticleService:
@@ -10,14 +15,20 @@ class ArticleService:
         self.qdrant_dao: QdrantAccessObject = QdrantAccessObject()
         self.postgre_dao: PostgreAccessObject = PostgreAccessObject()
 
-    async def get_articles(self) -> Articles:
+    async def get_articles(self, params: ArticleParams) -> Articles:
         """Get all articles from the database
 
         Returns:
             Articles: Articles
         """
         columns: str = "id, link, headline, category, short_description, authors, date"
-        result = self.postgre_dao.select("articles", columns, limit=10)
+        result = self.postgre_dao.select(
+            "articles",
+            columns,
+            where=f"articles.category = '{params.category}'" if params.category else None,
+            limit=params.per_page,
+            offset=params.per_page * params.page_index,
+        )
         articles: Articles = Articles(
             data=[
                 Article(
@@ -40,7 +51,9 @@ class ArticleService:
         Returns:
             Article: Article
         """
-        columns: str = "id, link, headline, category, short_description, authors, date, vector"
+        columns: str = (
+            "id, link, headline, category, short_description, authors, date, vector"
+        )
         result = self.postgre_dao.select("articles", columns, f"id = {article_id}")
         article: Article = Article(
             id=result[0][0],
@@ -50,7 +63,7 @@ class ArticleService:
             short_description=result[0][4],
             authors=result[0][5],
             date=result[0][6],
-            embedding=[float(num.strip('{}')) for num in result[0][7].split(',')],
+            embedding=[float(num.strip("{}")) for num in result[0][7].split(",")],
         )
 
         result = self.qdrant_dao.search(

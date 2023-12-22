@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "data-pipeline"
+version = "0.1.0"
+description = ""
+authors = ["malo.girard <malo.girard@jellysmack.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.11,<3.13"
+qdrant-client = "^1.7.0"
+pandas = "^2.1.4"
+pyscopg2 = "^66.0.2"
+psycopg2-binary = "^2.9.9"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
